@@ -3,11 +3,10 @@
 """
 
 import os
-
-os.makedirs("data", exist_ok=True)
-
 import numpy as np
 from glob import glob
+
+os.makedirs("data", exist_ok=True)
 
 calc_spectra = True
 calc_pow = True

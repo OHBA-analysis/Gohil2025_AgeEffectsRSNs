@@ -2,12 +2,9 @@
 
 """
 
-import os
 import numpy as np
 import glmtools as glm
 from scipy import stats
-
-os.makedirs("data", exist_ok=True)
 
 do_pow = True
 do_coh = True

@@ -6,6 +6,7 @@ import mne
 import numpy as np
 import pandas as pd
 from pathlib import Path
+from scipy import signal, optimize
 from glob import glob
 
 from osl_dynamics.analysis import power, connectivity
@@ -27,14 +28,27 @@ def get_headsize_and_pos(fif_file):
     z = dfids[0, 2]
     return hs, x, y, z
 
-# Load target data
-f = np.load("../data/f.npy")
-psd = np.load("../data/psd.npy")
-coh = np.load("../data/coh.npy")
-aec = np.load("../data/aec.npy")
+def gauss(x, A, mu, sigma):
+    return A * np.exp(-(x - mu) ** 2 / (2 * sigma ** 2))
 
-freq_bands = [[1, 4], [4, 8], [8, 13], [13, 24], [30, 45]]
-m, n = np.triu_indices(coh.shape[-2], k=1)
+def get_precise_freq(x, y):
+    try:
+        popt, pcov = optimize.curve_fit(gauss, x, y, p0=[y[1], x[1], x[2]-x[0]])
+        return popt[1]
+    except:
+        return
+
+# Load target data
+f = np.load("../../data/f.npy")
+psd = np.load("../../data/psd.npy")
+
+# Only consider the theta/alpha band
+psd[:, :, f < 4] = 0
+psd[:, :, f > 13] = 0
+
+# Only keep occipital parcels
+parcels = [0, 1, 2, 3, 26, 27, 28, 29]
+psd = psd[:, parcels]
 
 # Source data file and subjects IDs
 files = sorted(glob("/well/woolrich/projects/camcan/spring23/src/*/sflip_parc-raw.fif"))
@@ -42,25 +56,27 @@ ids = np.array([file.split("/")[-2].split("-")[1] for file in files])
 
 def get_targets(id):
     i = np.squeeze(np.argwhere(ids == id))
-    p = psd[i]
-    c = coh[i]
-    a = aec[i]
-    p = np.array([power.variance_from_spectra(f, p, frequency_range=b) for b in freq_bands]).T
-    c = np.array([connectivity.mean_coherence_from_spectra(f, c, frequency_range=b) for b in freq_bands])
-    mc = connectivity.mean_connections(c).T
-    c = c.T[m, n]
-    ma = connectivity.mean_connections(a.T).T
-    a = a[m, n]
-    return p, c, mc, a, ma
+    p = np.mean(psd[i], axis=0)
+    indices, _ = signal.find_peaks(p)
+    peaks = f[indices]
+    peaks = peaks[peaks != 4.39453125]
+    if len(peaks) == 0:
+        return
+    elif len(peaks) > 1:
+        i = np.argmax([p[f == peak] for peak in peaks])
+        index = np.argwhere(f == peaks[i])[0,0]
+        x = f[index-1:index+2]
+        y = p[index-1:index+2]
+        P = get_precise_freq(x, y)
+    else:
+        index = np.argwhere(f == peaks[0])[0,0]
+        x = f[index-1:index+2]
+        y = p[index-1:index+2]
+        P = get_precise_freq(x, y)
+    return P
 
-# Lists to hold target data
-pow_ = []
-coh_ = []
-mean_coh_ = []
-aec_ = []
-mean_aec_ = []
-
-# Lists to hold regressor data
+# Lists to hold data
+peak_freq_ = []
 age_ = []
 sex_ = []
 brain_vol_ = []
@@ -87,20 +103,14 @@ for _, row in csv.iterrows():
             continue
 
         # Get data
-        p, c, mc, a, ma = get_targets(id)
-        if len(p) == 0:
-            print(f"sub-{id} has no psd")
+        p = get_targets(id)
+        if p is None:
+            print(f"could not find peak freq for sub-{id}")
             continue
         hs, x, y, z = get_headsize_and_pos(preproc_file)
 
-        # Add to target data lists
-        pow_.append(p)
-        coh_.append(c)
-        mean_coh_.append(mc)
-        aec_.append(a)
-        mean_aec_.append(ma)
-
-        # Add to regressor lists
+        # Add to lists
+        peak_freq_.append(p)
         age_.append(row["Fixed_Age"])
         sex_.append(row["Sex (1=female, 2=male)"])
         brain_vol_.append(row["Brain_Vol"])
@@ -115,11 +125,7 @@ for _, row in csv.iterrows():
         print(f"sub-{id} not found")
 
 # Save data
-np.save("data/pow.npy", pow_)
-np.save("data/coh.npy", coh_)
-np.save("data/mean_coh.npy", mean_coh_)
-np.save("data/aec.npy", aec_)
-np.save("data/mean_aec.npy", mean_aec_)
+np.save("data/peak_freq.npy", peak_freq_)
 np.save("data/age.npy", age_)
 np.save("data/sex.npy", sex_)
 np.save("data/brain_vol.npy", brain_vol_)
