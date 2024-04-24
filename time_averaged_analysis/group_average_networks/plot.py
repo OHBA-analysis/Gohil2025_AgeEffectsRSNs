@@ -30,9 +30,9 @@ if plot_psd:
         "legend.fontsize": 28,
     })
 
-    f = np.load("../static_analysis/data/f.npy")
-    psd = np.load("../static_analysis/data/psd.npy")
-    w = np.load("../static_analysis/data/w.npy")
+    f = np.load("../data/f.npy")
+    psd = np.load("../data/psd.npy")
+    w = np.load("../data/w.npy")
 
     gpsd = np.average(psd, axis=0, weights=w)
     p = np.mean(gpsd, axis=0)
@@ -62,9 +62,9 @@ if plot_coh:
         "legend.fontsize": 28,
     })
 
-    f = np.load("../static_analysis/data/f.npy")
-    coh = np.load("../static_analysis/data/coh.npy")
-    w = np.load("../static_analysis/data/w.npy")
+    f = np.load("../data/f.npy")
+    coh = np.load("../data/coh.npy")
+    w = np.load("../data/w.npy")
 
     i, j = np.triu_indices(coh.shape[-2], k=1)
     gcoh = np.average(coh, axis=0, weights=w)
@@ -98,9 +98,9 @@ if plot_pow_maps:
         "ytick.labelsize": 18,
     })
 
-    f = np.load("../static_analysis/data/f.npy")
-    psd = np.load("../static_analysis/data/psd.npy")
-    w = np.load("../static_analysis/data/w.npy")
+    f = np.load("../data/f.npy")
+    psd = np.load("../data/psd.npy")
+    w = np.load("../data/w.npy")
 
     # Group average
     psd = np.average(psd, axis=0, weights=w)
@@ -141,9 +141,9 @@ if plot_coh_nets:
         "ytick.labelsize": 12,
     })
 
-    f = np.load("../static_analysis/data/f.npy")
-    coh = np.load("../static_analysis/data/coh.npy")
-    w = np.load("../static_analysis/data/w.npy")
+    f = np.load("../data/f.npy")
+    coh = np.load("../data/coh.npy")
+    w = np.load("../data/w.npy")
 
     # Group average
     coh = np.average(coh, axis=0, weights=w)
@@ -182,8 +182,8 @@ if plot_aec_nets:
     })
 
     # Load
-    aec = np.load("../static_analysis/data/aec.npy")
-    w = np.load("../static_analysis/data/w.npy")
+    aec = np.load("../data/aec.npy")
+    w = np.load("../data/w.npy")
 
     # Group average
     c = np.average(aec, axis=0, weights=w)
@@ -216,9 +216,9 @@ if plot_mean_coh_maps:
         "ytick.labelsize": 18,
     })
 
-    f = np.load("../static_analysis/data/f.npy")
-    coh = np.load("../static_analysis/data/coh.npy")
-    w = np.load("../static_analysis/data/w.npy")
+    f = np.load("../data/f.npy")
+    coh = np.load("../data/coh.npy")
+    w = np.load("../data/w.npy")
 
     # Group average
     coh = np.average(coh, axis=0, weights=w)
@@ -259,8 +259,8 @@ if plot_mean_aec_maps:
     })
 
     # Load
-    aec = np.load("../static_analysis/data/aec.npy")
-    w = np.load("../static_analysis/data/w.npy")
+    aec = np.load("../data/aec.npy")
+    w = np.load("../data/w.npy")
 
     # Group average
     c = np.average(aec, axis=0, weights=w)

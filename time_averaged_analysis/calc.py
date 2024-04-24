@@ -1,4 +1,4 @@
-"""Calculate static quantities.
+"""Calculate static (time-averaged) quantities.
 
 """
 
