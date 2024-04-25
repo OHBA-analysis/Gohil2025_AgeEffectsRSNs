@@ -27,17 +27,19 @@ def get_headsize_and_pos(fif_file):
     z = dfids[0, 2]
     return hs, x, y, z
 
+base_dir = "/well/woolrich/users/wlo995/Gohil2024_HealthyAgeingRSNs"
+
 # Load target data
-f = np.load("../../data/f.npy")
-psd = np.load("../../data/psd.npy")
-coh = np.load("../../data/coh.npy")
-aec = np.load("../../data/aec.npy")
+f = np.load(f"{base_dir}/2_time_averaged_analysis/data/f.npy")
+psd = np.load(f"{base_dir}/2_time_averaged_analysis/data/psd.npy")
+coh = np.load(f"{base_dir}/2_time_averaged_analysis/data/coh.npy")
+aec = np.load(f"{base_dir}/2_time_averaged_analysis/data/aec.npy")
 
 freq_bands = [[1, 4], [4, 8], [8, 13], [13, 24], [30, 45]]
 m, n = np.triu_indices(coh.shape[-2], k=1)
 
 # Source data file and subjects IDs
-files = sorted(glob("/well/woolrich/projects/camcan/spring23/src/*/sflip_parc-raw.fif"))
+files = sorted(glob(f"{base_dir}/1_preproc_and_source_recon/data/src/*/sflip_parc-raw.fif"))
 ids = np.array([file.split("/")[-2].split("-")[1] for file in files])
 
 def get_targets(id):
@@ -72,12 +74,12 @@ y_ = []
 z_ = []
 
 # Load participant confound data
-csv = pd.read_csv("/well/woolrich/projects/camcan/all_collated_camcan.csv")
+csv = pd.read_csv(f"{base_dir}/all_collated_camcan.csv")
 
 for _, row in csv.iterrows():
     id = row["ID"]
     preproc_file = (
-        "/well/woolrich/projects/camcan/spring23/preproc"
+        f"{base_dir}/1_preproc_and_source_recon/data/preproc"
         f"/mf2pt2_sub-{id}_ses-rest_task-rest_meg"
         f"/mf2pt2_sub-{id}_ses-rest_task-rest_meg_preproc_raw.fif"
     )

@@ -4,18 +4,21 @@
 
 import os
 import numpy as np
+import pandas as pd
 from glob import glob
 
 os.makedirs("data", exist_ok=True)
 
-calc_spectra = True
-calc_pow = True
-calc_coh = True
-calc_aec = True
+calc_spectra = False
+calc_pow = False
+calc_coh = False
+calc_aec = False
+get_ages = True
 
 freq_bands = [[1, 4], [4, 8], [8, 13], [13, 24], [30, 45]]
 
-files = sorted(glob("/well/woolrich/projects/camcan/spring23/src/*/sflip_parc-raw.fif"))
+base_dir = "/well/woolrich/users/wlo995/Gohil2024_HealthyAgeingRSNs"
+files = sorted(glob(f"{base_dir}/1_preproc_and_source_recon/data/src/*/sflip_parc-raw.fif"))
 
 if calc_spectra:
     from osl_dynamics.analysis import static
@@ -53,7 +56,9 @@ if calc_pow:
         pow_.append(p)
     pow_ = np.swapaxes(pow_, 0, 1)
 
-    np.save("data/pow.npy", pow_)
+    filename = "data/pow.npy"
+    print("Saving", filename)
+    np.save(filename, pow_)
 
 if calc_coh:
     from osl_dynamics.analysis import connectivity
@@ -67,7 +72,9 @@ if calc_coh:
         mean_coh.append(c)
     mean_coh = np.swapaxes(mean_coh, 0, 1)
 
-    np.save("data/mean_coh.npy", mean_coh)
+    filename = "data/mean_coh.npy"
+    print("Saving", filename)
+    np.save(filename, mean_coh)
 
 if calc_aec:
     from osl_dynamics.analysis import static
@@ -87,4 +94,21 @@ if calc_aec:
         aec.append(static.functional_connectivity(x))
     aec = np.moveaxis(aec, 0, -1)
 
-    np.save("data/aec.npy", aec)
+    filename = "data/aec.npy"
+    print("Saving", filename)
+    np.save(filename, aec)
+
+if get_ages:
+    subjects = [file.split("/")[-2] for file in files]
+
+    participants = pd.read_csv("/well/woolrich/projects/camcan/participants.tsv", sep="\t")
+    age = np.array(
+        [
+            participants.loc[participants["participant_id"] == subject]["age"].values[0]
+            for subject in subjects
+        ]
+    )
+
+    filename = "data/age.npy"
+    print("Saving", filename)
+    np.save(filename, age)
