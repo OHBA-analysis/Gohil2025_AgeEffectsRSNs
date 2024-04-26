@@ -4,10 +4,10 @@
 
     - `1_train_hmm.py`: train an HMM.
     - `2_get_inf_params.py`: get the inferred parameters (state probabilities and covariances) for the best model.
-    - `3_calc_multitaper.py`: calculate state-specific multitaper spectra.
-    - `4_calc_summary_stats.py`: calculate state-specific summary statistics.
+    - `3_calc_multitaper.py`: calculate subject and state-specific multitaper spectra.
+    - `4_calc_summary_stats.py`: calculate subject and state-specific summary statistics.
 
-2. Plot networks (`group_average_networks`).
+2. Plot networks and summary stats (`group_average_networks`).
 
 3. Do stats to study linear ageing effects (`linear_age_effect`).
 

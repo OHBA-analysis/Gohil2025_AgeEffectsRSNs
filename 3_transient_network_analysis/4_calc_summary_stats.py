@@ -1,5 +1,6 @@
 """Calculate summary statistics for the best run.
 
+We also calculate subject specific transition probability matrices.
 """
 
 import pickle
@@ -40,3 +41,8 @@ np.save(f"{model_dir}/fo.npy", fo)
 np.save(f"{model_dir}/lt.npy", lt)
 np.save(f"{model_dir}/intv.npy", intv)
 np.save(f"{model_dir}/sr.npy", sr)
+
+# Calculate transition probability matrices
+tp = modes.calc_trans_prob_matrix(stc, n_states=10)
+
+np.save(f"{model_dir}/tp.npy", tp)
