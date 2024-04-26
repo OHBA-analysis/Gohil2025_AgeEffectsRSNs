@@ -20,8 +20,8 @@ ANAT_DIR = "data/cc700/mri/pipeline/release004/BIDS_20190411/anat"
 # Files
 PREPROC_FILE = (
     PREPROC_DIR
-    + "/mf2pt2_{subject}_ses-{task}_task-{task}_meg"
-    + "/mf2pt2_{subject}_ses-{task}_task-{task}_meg_preproc_raw.fif"
+    + "/mf2pt2_{subject}_ses-rest_task-rest_meg"
+    + "/mf2pt2_{subject}_ses-rest_task-rest_meg_preproc_raw.fif"
 )
 SMRI_FILE = ANAT_DIR + "/{subject}/anat/{subject}_T1w.nii.gz"
 
@@ -66,17 +66,13 @@ if __name__ == "__main__":
     subjects = []
     preproc_files = []
     smri_files = []
-    for task in ["rest", "smt", "passive"]:
-        for preproc_file in sorted(glob(PREPROC_FILE.format(subject="*", task=task))):
-            subject = preproc_file.split("/")[-1].split("_")[1]
-            smri_file = SMRI_FILE.format(subject=subject)
-            if subject == "sub-CC510480" and task == "passive":
-                # This subject has erronous headshape points
-                continue
-            if Path(smri_file).exists():
-                subjects.append(f"{subject}_task-{task}")
-                preproc_files.append(preproc_file)
-                smri_files.append(smri_file)
+    for preproc_file in sorted(glob(PREPROC_FILE.format(subject="*"))):
+        subject = preproc_file.split("/")[-1].split("_")[1]
+        smri_file = SMRI_FILE.format(subject=subject)
+        if Path(smri_file).exists():
+            subjects.append(subject)
+            preproc_files.append(preproc_file)
+            smri_files.append(smri_file)
 
     # Settings
     config = """

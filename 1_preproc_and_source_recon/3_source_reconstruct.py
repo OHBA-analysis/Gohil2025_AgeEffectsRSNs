@@ -15,7 +15,11 @@ PREPROC_DIR ="data/preproc"
 SRC_DIR = "data/src"
 
 # Files
-PREPROC_FILE = PREPROC_DIR + "/mf2pt2_{0}_ses-rest_task-rest_meg/mf2pt2_{0}_ses-rest_task-rest_meg_preproc_raw.fif"
+PREPROC_FILE = (
+    PREPROC_DIR
+    + "/mf2pt2_{subject}_ses-rest_task-rest_meg"
+    + "/mf2pt2_{subject}_ses-rest_task-rest_meg_preproc_raw.fif"
+)
 
 # Settings
 config = """
