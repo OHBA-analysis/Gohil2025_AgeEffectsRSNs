@@ -24,10 +24,10 @@ def do_stats(design, data, model, contrast_idx, metric="copes"):
         nprocesses=16,
     )
     if metric == "tstats":
-        tstats = abs(model.tstats[0])
+        tstats = abs(model.tstats[contrast_idx])
         percentiles = stats.percentileofscore(perm.nulls, tstats)
     elif metric == "copes":
-        copes = abs(model.copes[0])
+        copes = abs(model.copes[contrast_idx])
         percentiles = stats.percentileofscore(perm.nulls, copes)
     return 1 - percentiles / 100
 
@@ -38,6 +38,7 @@ def fit_glm_and_do_stats(target):
         sex=np.load("data/sex.npy"),
         brain_vol=np.load("data/brain_vol.npy"),
         gm_vol=np.load("data/gm_vol.npy"),
+        wm_vol=np.load("data/wm_vol.npy"),
         hip_vol=np.load("data/hip_vol.npy"),
         headsize=np.load("data/headsize.npy"),
         x=np.load("data/x.npy"),
@@ -52,14 +53,15 @@ def fit_glm_and_do_stats(target):
     DC.add_regressor(name="Sex", rtype="Parametric", datainfo="sex", preproc="z")
     DC.add_regressor(name="Brain Vol.", rtype="Parametric", datainfo="brain_vol", preproc="z")
     DC.add_regressor(name="GM Vol.", rtype="Parametric", datainfo="gm_vol", preproc="z")
+    DC.add_regressor(name="WM Vol.", rtype="Parametric", datainfo="wm_vol", preproc="z")
     DC.add_regressor(name="Hippo. Vol.", rtype="Parametric", datainfo="hip_vol", preproc="z")
     DC.add_regressor(name="Head Size", rtype="Parametric", datainfo="headsize", preproc="z")
     DC.add_regressor(name="x", rtype="Parametric", datainfo="x", preproc="z")
     DC.add_regressor(name="y", rtype="Parametric", datainfo="y", preproc="z")
     DC.add_regressor(name="z", rtype="Parametric", datainfo="z", preproc="z")
 
-    DC.add_contrast(name="Old-Young", values=[1, -1, 0, 0, 0, 0, 0, 0, 0, 0])
-    DC.add_contrast(name="Young", values=[0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+    DC.add_contrast(name="Old-Young", values=[1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    DC.add_contrast(name="Young", values=[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     design = DC.design_from_datainfo(data.info)
     design.plot_summary(savepath="plots/glm_design.png", show=False)

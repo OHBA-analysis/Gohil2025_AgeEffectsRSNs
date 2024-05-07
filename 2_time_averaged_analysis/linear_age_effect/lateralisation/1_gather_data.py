@@ -36,7 +36,8 @@ coh = np.load(f"{base_dir}/2_time_averaged_analysis/data/coh.npy")
 aec = np.load(f"{base_dir}/2_time_averaged_analysis/data/aec.npy")
 
 freq_bands = [[1, 4], [4, 8], [8, 13], [13, 24], [30, 45]]
-m, n = np.triu_indices(coh.shape[-2], k=1)
+left_parcels = range(52 // 2, 52)
+right_parcels = range(52 // 2)
 
 # Source data file and subjects IDs
 files = sorted(glob(f"{base_dir}/1_preproc_and_source_recon/data/src/*/sflip_parc-raw.fif"))
@@ -44,31 +45,54 @@ ids = np.array([file.split("/")[-2].split("-")[1] for file in files])
 
 def get_targets(id):
     i = np.squeeze(np.argwhere(ids == id))
-    P = psd[i]
+
+    p = psd[i]
+    p = np.array([power.variance_from_spectra(f, p, frequency_range=b) for b in freq_bands]).T
+    pd = p[right_parcels] - p[left_parcels]
+
     c = coh[i]
-    a = aec[i]
-    p = np.array([power.variance_from_spectra(f, P, frequency_range=b) for b in freq_bands]).T
+    if len(c) == 0:
+        return [], [], []
     c = np.array([connectivity.mean_coherence_from_spectra(f, c, frequency_range=b) for b in freq_bands])
-    mc = connectivity.mean_connections(c).T
-    c = c.T[m, n]
-    ma = connectivity.mean_connections(a.T).T
-    a = a[m, n]
-    return p, c, mc, a, ma, P
+    c_intra = np.zeros([len(freq_bands), 52])
+    c_inter = np.zeros([len(freq_bands), 52])
+    for j in range(len(freq_bands)):
+        for i in left_parcels:
+            # Left intra
+            c_intra[j, i] = np.sum(c[j, i, left_parcels])
+            # Left inter
+            c_inter[j, i] = np.sum(c[j, i, right_parcels])
+        for i in right_parcels:
+            # Right intra
+            c_intra[j, i] = np.sum(c[j, i, right_parcels])
+            # Right inter
+            c_inter[j, i] = np.sum(c[j, i, left_parcels])
+    cd = c_intra - c_inter
+
+    c = aec[i].T
+    c_intra = np.zeros([len(freq_bands), 52])
+    c_inter = np.zeros([len(freq_bands), 52])
+    for j in range(len(freq_bands)):
+        for i in left_parcels:
+            c_intra[j, i] = np.sum(c[j, i, left_parcels])
+            c_inter[j, i] = np.sum(c[j, i, right_parcels])
+        for i in right_parcels:
+            c_intra[j, i] = np.sum(c[j, i, right_parcels])
+            c_inter[j, i] = np.sum(c[j, i, left_parcels])
+    ad = c_intra - c_inter
+
+    return pd, cd, ad
 
 # Lists to hold target data
-psd_ = []
-pow_ = []
-coh_ = []
-mean_coh_ = []
-aec_ = []
-mean_aec_ = []
+pow_diff_ = []
+mean_coh_diff_ = []
+mean_aec_diff_ = []
 
 # Lists to hold regressor data
-category_list_ = []
+age_ = []
 sex_ = []
 brain_vol_ = []
 gm_vol_ = []
-wm_vol_ = []
 hip_vol_ = []
 headsize_ = []
 x_ = []
@@ -90,35 +114,23 @@ for _, row in csv.iterrows():
         if id == "CC221585":
             continue
 
-        # Is this subject in the young or old group?
-        age = row["Fixed_Age"]
-        if age > 78:
-            category_list_.append(1)
-        elif age < 28:
-            category_list_.append(2)
-        else:
-            continue
-
         # Get data
-        p, c, mc, a, ma, P = get_targets(id)
-        if len(p) == 0:
+        pd, mcd, mad = get_targets(id)
+        if len(pd) == 0:
             print(f"sub-{id} has no psd")
             continue
         hs, x, y, z = get_headsize_and_pos(preproc_file)
 
         # Add to target data lists
-        psd_.append(P)
-        pow_.append(p)
-        coh_.append(c)
-        mean_coh_.append(mc)
-        aec_.append(a)
-        mean_aec_.append(ma)
+        pow_diff_.append(pd)
+        mean_coh_diff_.append(mcd)
+        mean_aec_diff_.append(mad)
 
         # Add to regressor lists
+        age_.append(row["Fixed_Age"])
         sex_.append(row["Sex (1=female, 2=male)"])
         brain_vol_.append(row["Brain_Vol"])
         gm_vol_.append(row["GM_Vol_Norm"])
-        wm_vol_.append(row["WM_Vol_Norm"])
         hip_vol_.append(row["Hippo_Vol_Norm"])
         headsize_.append(hs)
         x_.append(x)
@@ -129,17 +141,13 @@ for _, row in csv.iterrows():
         print(f"sub-{id} not found")
 
 # Save data
-np.save("data/psd.npy", psd_)
-np.save("data/pow.npy", pow_)
-np.save("data/coh.npy", coh_)
-np.save("data/mean_coh.npy", mean_coh_)
-np.save("data/aec.npy", aec_)
-np.save("data/mean_aec.npy", mean_aec_)
-np.save("data/category_list.npy", category_list_)
+np.save("data/pow_diff.npy", pow_diff_)
+np.save("data/mean_coh_diff.npy", mean_coh_diff_)
+np.save("data/mean_aec_diff.npy", mean_aec_diff_)
+np.save("data/age.npy", age_)
 np.save("data/sex.npy", sex_)
 np.save("data/brain_vol.npy", brain_vol_)
 np.save("data/gm_vol.npy", gm_vol_)
-np.save("data/wm_vol.npy", wm_vol_)
 np.save("data/hip_vol.npy", hip_vol_)
 np.save("data/headsize.npy", headsize_)
 np.save("data/x.npy", x_)

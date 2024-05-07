@@ -17,12 +17,13 @@ def do_stats(design, data, model, contrast_idx, metric="copes"):
         pooled_dims=(),
         nprocesses=16,
     )
+    nulls = np.squeeze(perm.nulls)
     if metric == "tstats":
-        tstats = abs(model.tstats[0])
-        percentiles = stats.percentileofscore(perm.nulls, tstats)
+        tstats = abs(model.tstats[contrast_idx])
+        percentiles = stats.percentileofscore(nulls, tstats)
     elif metric == "copes":
-        copes = abs(model.copes[0])
-        percentiles = stats.percentileofscore(perm.nulls, copes)
+        copes = abs(model.copes[contrast_idx])
+        percentiles = stats.percentileofscore(nulls, copes)
     return 1 - percentiles / 100
 
 def fit_glm_and_do_stats(target):

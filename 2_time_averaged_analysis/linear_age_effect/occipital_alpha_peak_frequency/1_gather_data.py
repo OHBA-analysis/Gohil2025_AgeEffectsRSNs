@@ -61,7 +61,7 @@ def get_targets(id):
     p = np.mean(psd[i], axis=0)
     indices, _ = signal.find_peaks(p)
     peaks = f[indices]
-    peaks = peaks[peaks != 4.39453125]
+    peaks = peaks[peaks != 4]
     if len(peaks) == 0:
         return
     elif len(peaks) > 1:

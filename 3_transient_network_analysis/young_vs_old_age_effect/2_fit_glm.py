@@ -24,10 +24,10 @@ def do_stats(design, data, model, contrast_idx, metric="copes"):
         nprocesses=16,
     )
     if metric == "tstats":
-        tstats = abs(model.tstats[0])
+        tstats = abs(model.tstats[contrast_idx])
         percentiles = stats.percentileofscore(perm.nulls, tstats)
     elif metric == "copes":
-        copes = abs(model.copes[0])
+        copes = abs(model.copes[contrast_idx])
         percentiles = stats.percentileofscore(perm.nulls, copes)
     return 1 - percentiles / 100
 

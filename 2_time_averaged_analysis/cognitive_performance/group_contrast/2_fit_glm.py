@@ -21,10 +21,10 @@ def do_stats(design, data, model, contrast_idx, metric="copes"):
         nprocesses=16,
     )
     if metric == "tstats":
-        tstats = abs(model.tstats[0])
+        tstats = abs(model.tstats[contrast_idx])
         percentiles = stats.percentileofscore(perm.nulls, tstats)
     elif metric == "copes":
-        copes = abs(model.copes[0])
+        copes = abs(model.copes[contrast_idx])
         percentiles = stats.percentileofscore(perm.nulls, copes)
     return 1 - percentiles / 100
 
@@ -57,7 +57,7 @@ def fit_glm_and_do_stats(target):
     DC.add_regressor(name="y", rtype="Parametric", datainfo="y", preproc="z")
     DC.add_regressor(name="z", rtype="Parametric", datainfo="z", preproc="z")
 
-    DC.add_contrast(name="Top-Bottom", values=[1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    DC.add_contrast(name="", values=[1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     design = DC.design_from_datainfo(data.info)
     design.plot_summary(savepath="plots/glm_design.png", show=False)

@@ -6,12 +6,6 @@ import numpy as np
 import glmtools as glm
 from scipy import stats
 
-do_pow = True
-do_coh = True
-do_mean_coh = True
-do_aec = True
-do_mean_aec = True
-
 def do_stats(design, data, model, contrast_idx, metric="copes"):
     perm = glm.permutations.MaxStatPermutation(
         design=design,
@@ -20,30 +14,42 @@ def do_stats(design, data, model, contrast_idx, metric="copes"):
         nperms=1000,
         metric=metric,
         tail=0,  # two-tailed t-test
-        pooled_dims=(1,2),  # pool over channels and frequencies
+        pooled_dims=(),
         nprocesses=16,
     )
+    nulls = np.squeeze(perm.nulls)
     if metric == "tstats":
         tstats = abs(model.tstats[contrast_idx])
-        percentiles = stats.percentileofscore(perm.nulls, tstats)
+        percentiles = stats.percentileofscore(nulls, tstats)
     elif metric == "copes":
         copes = abs(model.copes[contrast_idx])
-        percentiles = stats.percentileofscore(perm.nulls, copes)
+        percentiles = stats.percentileofscore(nulls, copes)
     return 1 - percentiles / 100
 
 def fit_glm_and_do_stats(target):
+    remove = np.isnan(target)
+
+    age = np.load("data/age.npy")
+    sex = np.load("data/sex.npy")
+    brain_vol = np.load("data/brain_vol.npy")
+    gm_vol = np.load("data/gm_vol.npy")
+    hip_vol = np.load("data/hip_vol.npy")
+    headsize = np.load("data/headsize.npy")
+    x = np.load("data/x.npy")
+    y = np.load("data/y.npy")
+    z = np.load("data/z.npy")
+
     data = glm.data.TrialGLMData(
-        data=target,
-        age=np.load("data/age.npy"),
-        sex=np.load("data/sex.npy"),
-        brain_vol=np.load("data/brain_vol.npy"),
-        gm_vol=np.load("data/gm_vol.npy"),
-        hip_vol=np.load("data/hip_vol.npy"),
-        headsize=np.load("data/headsize.npy"),
-        x=np.load("data/x.npy"),
-        y=np.load("data/y.npy"),
-        z=np.load("data/z.npy"),
-        dim_labels=["Subjects", "Channels", "Frequencies"],
+        data=target[~remove],
+        age=age[~remove],
+        sex=sex[~remove],
+        brain_vol=brain_vol[~remove],
+        gm_vol=gm_vol[~remove],
+        hip_vol=hip_vol[~remove],
+        headsize=headsize[~remove],
+        x=x[~remove],
+        y=y[~remove],
+        z=z[~remove],
     )
 
     DC = glm.design.DesignConfig()
@@ -72,37 +78,13 @@ def fit_glm_and_do_stats(target):
     pvalues = do_stats(design, data, model, contrast_idx=0)
     return mean, age, pvalues
 
-if do_pow:
-    target = np.load("data/pow.npy")
-    mean, age, pvalues = fit_glm_and_do_stats(target)
-    np.save("data/glm_pow_mean.npy", mean)
-    np.save("data/glm_pow_age.npy", age)
-    np.save("data/glm_pow_age_pvalues.npy", pvalues)
-
-if do_coh:
-    target = np.load("data/coh.npy")
-    mean, age, pvalues = fit_glm_and_do_stats(target)
-    np.save("data/glm_coh_mean.npy", mean)
-    np.save("data/glm_coh_age.npy", age)
-    np.save("data/glm_coh_age_pvalues.npy", pvalues)
-
-if do_mean_coh:
-    target = np.load("data/mean_coh.npy")
-    mean, age, pvalues = fit_glm_and_do_stats(target)
-    np.save("data/glm_mean_coh_mean.npy", mean)
-    np.save("data/glm_mean_coh_age.npy", age)
-    np.save("data/glm_mean_coh_age_pvalues.npy", pvalues)
-
-if do_aec:
-    target = np.load("data/aec.npy")
-    mean, age, pvalues = fit_glm_and_do_stats(target)
-    np.save("data/glm_aec_mean.npy", mean)
-    np.save("data/glm_aec_age.npy", age)
-    np.save("data/glm_aec_age_pvalues.npy", pvalues)
-
-if do_mean_aec:
-    target = np.load("data/mean_aec.npy")
-    mean, age, pvalues = fit_glm_and_do_stats(target)
-    np.save("data/glm_mean_aec_mean.npy", mean)
-    np.save("data/glm_mean_aec_age.npy", age)
-    np.save("data/glm_mean_aec_age_pvalues.npy", pvalues)
+target = np.load("data/peak_freq.npy")
+n_states = target.shape[-1]
+age = []
+pvalues = []
+for i in range(n_states):
+    _, a, p = fit_glm_and_do_stats(target[:, i])
+    age.append(a[0])
+    pvalues.append(p[0])
+np.save("data/glm_age.npy", age)
+np.save("data/glm_age_pvalues.npy", pvalues)

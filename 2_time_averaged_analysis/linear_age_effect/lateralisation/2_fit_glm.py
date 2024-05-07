@@ -6,11 +6,9 @@ import numpy as np
 import glmtools as glm
 from scipy import stats
 
-do_pow = False
-do_coh = False
-do_mean_coh = False
-do_trans_prob = False
-do_sum_stats = True
+do_pow = True
+do_mean_coh = True
+do_mean_aec = True
 
 def do_stats(design, data, model, contrast_idx, metric="copes"):
     perm = glm.permutations.MaxStatPermutation(
@@ -24,14 +22,14 @@ def do_stats(design, data, model, contrast_idx, metric="copes"):
         nprocesses=16,
     )
     if metric == "tstats":
-        tstats = abs(model.tstats[contrast_idx])
+        tstats = abs(model.tstats[0])
         percentiles = stats.percentileofscore(perm.nulls, tstats)
     elif metric == "copes":
-        copes = abs(model.copes[contrast_idx])
+        copes = abs(model.copes[0])
         percentiles = stats.percentileofscore(perm.nulls, copes)
     return 1 - percentiles / 100
 
-def fit_glm_and_do_stats(target, metric="copes"):
+def fit_glm_and_do_stats(target):
     data = glm.data.TrialGLMData(
         data=target,
         age=np.load("data/age.npy"),
@@ -43,6 +41,7 @@ def fit_glm_and_do_stats(target, metric="copes"):
         x=np.load("data/x.npy"),
         y=np.load("data/y.npy"),
         z=np.load("data/z.npy"),
+        dim_labels=["Subjects", "Channels", "Frequencies"],
     )
 
     DC = glm.design.DesignConfig()
@@ -68,40 +67,26 @@ def fit_glm_and_do_stats(target, metric="copes"):
 
     mean = model.betas[0]
     age = model.copes[0]
-    pvalues = do_stats(design, data, model, contrast_idx=0, metric=metric)
+    pvalues = do_stats(design, data, model, contrast_idx=0)
     return mean, age, pvalues
 
 if do_pow:
-    target = np.load("data/pow.npy")
+    target = np.load("data/pow_diff.npy")
     mean, age, pvalues = fit_glm_and_do_stats(target)
-    np.save("data/glm_pow_mean.npy", mean)
-    np.save("data/glm_pow_age.npy", age)
-    np.save("data/glm_pow_age_pvalues.npy", pvalues)
-
-if do_coh:
-    target = np.load("data/coh.npy")
-    mean, age, pvalues = fit_glm_and_do_stats(target)
-    np.save("data/glm_coh_mean.npy", mean)
-    np.save("data/glm_coh_age.npy", age)
-    np.save("data/glm_coh_age_pvalues.npy", pvalues)
+    np.save("data/glm_pow_diff_mean.npy", mean)
+    np.save("data/glm_pow_diff_age.npy", age)
+    np.save("data/glm_pow_diff_age_pvalues.npy", pvalues)
 
 if do_mean_coh:
-    target = np.load("data/mean_coh.npy")
+    target = np.load("data/mean_coh_diff.npy")
     mean, age, pvalues = fit_glm_and_do_stats(target)
-    np.save("data/glm_mean_coh_mean.npy", mean)
-    np.save("data/glm_mean_coh_age.npy", age)
-    np.save("data/glm_mean_coh_age_pvalues.npy", pvalues)
+    np.save("data/glm_mean_coh_diff_mean.npy", mean)
+    np.save("data/glm_mean_coh_diff_age.npy", age)
+    np.save("data/glm_mean_coh_diff_age_pvalues.npy", pvalues)
 
-if do_trans_prob:
-    target = np.load("data/trans_prob.npy")
+if do_mean_aec:
+    target = np.load("data/mean_aec_diff.npy")
     mean, age, pvalues = fit_glm_and_do_stats(target)
-    np.save("data/glm_trans_prob_mean.npy", mean)
-    np.save("data/glm_trans_prob_age.npy", age)
-    np.save("data/glm_trans_prob_age_pvalues.npy", pvalues)
-
-if do_sum_stats:
-    target = np.load("data/sum_stats.npy")
-    mean, age, pvalues = fit_glm_and_do_stats(target, metric="tstats")
-    np.save("data/glm_sum_stats_mean.npy", mean)
-    np.save("data/glm_sum_stats_age.npy", age)
-    np.save("data/glm_sum_stats_age_pvalues.npy", pvalues)
+    np.save("data/glm_mean_aec_diff_mean.npy", mean)
+    np.save("data/glm_mean_aec_diff_age.npy", age)
+    np.save("data/glm_mean_aec_diff_age_pvalues.npy", pvalues)
