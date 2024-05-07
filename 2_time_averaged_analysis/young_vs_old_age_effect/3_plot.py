@@ -6,12 +6,12 @@ import mne
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
-plot_psd = False
-plot_pow = False
-plot_coh = False
-plot_mean_coh = False
-plot_aec = False
-plot_mean_aec = False
+plot_psd = True
+plot_pow = True
+plot_coh = True
+plot_mean_coh = True
+plot_aec = True
+plot_mean_aec = True
 plot_region_psds = True
 
 def vec_to_mat(x):
