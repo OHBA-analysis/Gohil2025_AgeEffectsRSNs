@@ -7,3 +7,5 @@
 3. Do stats to study linear ageing effects (`linear_age_effect`).
 
 4. Do stats to study young vs old groups (`young_vs_old_age_effect`).
+
+5. Do stats to study cognitive performance (`cognitive_performance`).

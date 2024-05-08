@@ -14,3 +14,5 @@
 4. Do stats to study young vs old groups (`young_vs_old_age_effect`).
 
 5. Use summary statistics for dynamics to predict static power (`predict_static_power`).
+
+6. Do stats to study cognitive performance (`cognitive_performance`).
