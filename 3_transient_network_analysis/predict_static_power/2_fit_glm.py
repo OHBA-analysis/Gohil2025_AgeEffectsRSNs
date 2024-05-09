@@ -14,37 +14,30 @@ def do_stats(design, data, model, contrast_idx, metric="copes"):
         nperms=1000,
         metric=metric,
         tail=0,  # two-tailed t-test
-        pooled_dims=(1,2),  # pool over channels and frequencies
+        pooled_dims=1,
         nprocesses=16,
     )
+    nulls = np.squeeze(perm.nulls)
     if metric == "tstats":
         tstats = abs(model.tstats[contrast_idx])
-        percentiles = stats.percentileofscore(perm.nulls, tstats)
+        percentiles = stats.percentileofscore(nulls, tstats)
     elif metric == "copes":
         copes = abs(model.copes[contrast_idx])
-        percentiles = stats.percentileofscore(perm.nulls, copes)
+        percentiles = stats.percentileofscore(nulls, copes)
     return 1 - percentiles / 100
 
-def fit_glm_and_do_stats(target, state, metric="copes"):
-    fo = np.load("data/fo.npy")[:, state]
-    lt = np.load("data/lt.npy")[:, state]
-    intv = np.load("data/intv.npy")[:, state]
-    sr = np.load("data/sr.npy")[:, state]
+def fit_glm_and_do_stats(target, metric="copes"):
+    fo = np.load("data/fo.npy")
+    n_states = fo.shape[1]
 
-    data = glm.data.TrialGLMData(
-        data=target,
-        fo=fo,
-        lt=lt,
-        intv=intv,
-        sr=sr,
-    )
+    regressors = {f"fo{i}": fo[:, i] for i in range(n_states)}
+
+    data = glm.data.TrialGLMData(data=target, **regressors)
 
     DC = glm.design.DesignConfig()
+    for i in range(n_states):
+        DC.add_regressor(name=f"FO{i + 1}", rtype="Parametric", datainfo=f"fo{i}", preproc="z")
     DC.add_regressor(name="Mean", rtype="Constant")
-    DC.add_regressor(name="FO", rtype="Parametric", datainfo="fo", preproc="z")
-    DC.add_regressor(name="LT", rtype="Parametric", datainfo="lt", preproc="z")
-    DC.add_regressor(name="INTV", rtype="Parametric", datainfo="intv", preproc="z")
-    DC.add_regressor(name="SR", rtype="Parametric", datainfo="sr", preproc="z")
 
     DC.add_simple_contrasts()
 
@@ -53,13 +46,14 @@ def fit_glm_and_do_stats(target, state, metric="copes"):
     design.plot_leverage(savepath="plots/glm_leverage.png", show=False)
     design.plot_efficiency(savepath="plots/glm_efficiency.png", show=False)
 
-    exit()
-
     model = glm.fit.OLSModel(design, data)
 
-    copes = model.copes
-    #pvalues = [do_stats(design, data, model, contrast_idx=0, metric=metric) for i in range(len(copes))]
-    return copes#, pvalues
+    copes = model.copes[:-1]
+    pvalues = np.array([do_stats(design, data, model, contrast_idx=i, metric=metric) for i in range(n_states)])
 
-target = np.load("data/pow.npy")
-fit_glm_and_do_stats(target, state=0)
+    return copes, pvalues
+
+target = np.load("data/static_pow.npy")
+copes, pvalues = fit_glm_and_do_stats(target)
+np.save("data/glm_copes.npy", copes)
+np.save("data/glm_pvalues.npy", pvalues)

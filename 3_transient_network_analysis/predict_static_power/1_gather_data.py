@@ -5,6 +5,8 @@
 import os
 import numpy as np
 
+from osl_dynamics.analysis import power
+
 os.makedirs("data", exist_ok=True)
 
 # Directories
@@ -13,27 +15,19 @@ model_dir = f"{base_dir}/3_transient_network_analysis/models/run2"
 static_dir = f"{base_dir}/2_time_averaged_analysis"
 
 # Load static power
-pow_ = np.load(f"{static_dir}/data/pow.npy")
+f = np.load(f"{static_dir}/data/f.npy")
+static_psd = np.load(f"{static_dir}/data/psd.npy")
+static_pow = power.variance_from_spectra(f, static_psd)
 
-# Load summary stats
+# Load summary stats and state PSDs
 fo = np.load(f"{model_dir}/fo.npy")
-lt = np.load(f"{model_dir}/lt.npy")
-intv = np.load(f"{model_dir}/intv.npy")
-sr = np.load(f"{model_dir}/sr.npy")
 
 # Reorder the states
 state_psds = np.load(f"{model_dir}/psd.npy")
 p = np.mean(state_psds, axis=(0,2,3))
 order = np.argsort(p)[::-1]
-
 fo = fo[:, order]
-lt = lt[:, order]
-intv = intv[:, order]
-sr = sr[:, order]
 
 # Save
-np.save("data/pow.npy", pow_)
+np.save("data/static_pow.npy", static_pow)
 np.save("data/fo.npy", fo)
-np.save("data/lt.npy", lt)
-np.save("data/intv.npy", intv)
-np.save("data/sr.npy", sr)

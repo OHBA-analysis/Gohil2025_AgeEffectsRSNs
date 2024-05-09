@@ -7,12 +7,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-plot_psds = True
-plot_pow_maps = True
+plot_psds = False
+plot_pow_maps = False
+plot_coh_nets = False
 plot_coh_maps = True
 plot_pow_vs_coh = False
-plot_trans_prob = True
-plot_sum_stats = True
+plot_trans_prob = False
+plot_sum_stats = False
 
 os.makedirs("plots", exist_ok=True)
 
@@ -83,16 +84,13 @@ if plot_pow_maps:
         p,
         mask_file="MNI152_T1_8mm_brain.nii.gz",
         parcellation_file="Glasser52_binary_space-MNI152NLin6_res-8x8x8.nii.gz",
-        plot_kwargs={
-            "views": ["lateral"],
-            "symmetric_cbar": True,
-        },
+        plot_kwargs={"views": ["lateral"], "symmetric_cbar": True},
         subtract_mean=True,
         mean_weights=gfo,
         filename="plots/pow_.png",
     )
 
-if plot_coh_maps:
+if plot_coh_nets:
     from osl_dynamics.analysis import connectivity
     from osl_dynamics.utils import plotting
 
@@ -122,6 +120,37 @@ if plot_coh_maps:
             "annotate": False,
         },
         filename="plots/coh_.png",
+    )
+
+if plot_coh_maps:
+    from osl_dynamics.analysis import connectivity, power
+    from osl_dynamics.utils import plotting
+
+    plotting.set_style({
+        "axes.labelsize": 16,
+        "xtick.labelsize": 16,
+        "ytick.labelsize": 16,
+    })
+
+    f = np.load(f"{model_dir}/f.npy")
+    coh = np.load(f"{model_dir}/coh.npy")[:, order]
+    w = np.load(f"{model_dir}/w.npy")
+    fo = np.load(f"{model_dir}/fo.npy")[:, order]
+
+    gcoh = np.average(coh, axis=0, weights=w)
+    c = connectivity.mean_coherence_from_spectra(f, gcoh)
+    c = connectivity.mean_connections(c)
+
+    gfo = np.average(fo, axis=0, weights=w)
+
+    power.save(
+        c,
+        mask_file="MNI152_T1_8mm_brain.nii.gz",
+        parcellation_file="Glasser52_binary_space-MNI152NLin6_res-8x8x8.nii.gz",
+        plot_kwargs={"views": ["lateral"], "symmetric_cbar": True},
+        subtract_mean=True,
+        mean_weights=gfo,
+        filename="plots/mean_coh_.png",
     )
 
 if plot_pow_vs_coh:
