@@ -11,7 +11,7 @@ from dask.distributed import Client
 from osl import source_recon, utils
 
 # Directories
-PREPROC_DIR ="data/preproc"
+PREPROC_DIR = "data/preproc"
 SRC_DIR = "data/src"
 
 # Files
@@ -33,7 +33,6 @@ config = """
         parcellation_file: Glasser52_binary_space-MNI152NLin6_res-8x8x8.nii.gz
         method: spatial_basis
         orthogonalisation: symmetric
-        extra_chans: [eog, ecg]
 """
 
 if __name__ == "__main__":
@@ -41,13 +40,13 @@ if __name__ == "__main__":
 
     # Get subjects
     subjects = []
-    for subject in sorted(glob(PREPROC_FILE.replace("{0}", "*"))):
+    for subject in sorted(glob(PREPROC_FILE.format(subject="*"))):
         subjects.append(pathlib.Path(subject).stem.split("_")[1])
 
     # Setup files
     preproc_files = []
     for subject in subjects:
-        preproc_files.append(PREPROC_FILE.format(subject))
+        preproc_files.append(PREPROC_FILE.format(subject=subject))
 
     # Setup parallel processing
     client = Client(n_workers=16, threads_per_worker=1)
@@ -58,5 +57,6 @@ if __name__ == "__main__":
         src_dir=SRC_DIR,
         subjects=subjects,
         preproc_files=preproc_files,
+        gen_report=False,
         dask_client=True,
     )

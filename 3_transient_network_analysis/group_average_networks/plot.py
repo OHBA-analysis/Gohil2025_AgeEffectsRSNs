@@ -248,7 +248,6 @@ if plot_sum_stats:
         "axes.labelsize": 16,
         "xtick.labelsize": 14,
         "ytick.labelsize": 14,
-        "legend.fontsize": 14,
     })
 
     fo = np.load(f"{model_dir}/fo.npy")[:, order]
@@ -256,40 +255,4 @@ if plot_sum_stats:
     intv = np.load(f"{model_dir}/intv.npy")[:, order]
     sr = np.load(f"{model_dir}/sr.npy")[:, order]
 
-    n_states = fo.shape[1]
-    x = range(1, n_states + 1)
-
-    fig, ax = plotting.create_figure(nrows=1, ncols=4, figsize=(15, 3))
-    plotting.plot_violin(
-        fo.T,
-        x=x,
-        x_label="State",
-        y_label="Fractional Occupancy",
-        ax=ax[0],
-        sns_kwargs={"inner": "quart", "cut": 0, "palette": [cmap(i) for i in range(n_states)]},
-    )
-    plotting.plot_violin(
-        lt.T,
-        x=x,
-        x_label="State",
-        y_label="Mean Lifetime (s)",
-        ax=ax[1],
-        sns_kwargs={"inner": "quart", "cut": 0, "palette": [cmap(i) for i in range(n_states)]},
-    )
-    plotting.plot_violin(
-        intv.T,
-        x=x,
-        x_label="State",
-        y_label="Mean Interval (s)",
-        ax=ax[2],
-        sns_kwargs={"inner": "quart", "cut": 0, "palette": [cmap(i) for i in range(n_states)]},
-    )
-    plotting.plot_violin(
-        sr.T,
-        x=x,
-        x_label="State",
-        y_label="Switching rate (Hz)",
-        ax=ax[3],
-        sns_kwargs={"inner": "quart", "cut": 0, "palette": [cmap(i) for i in range(n_states)]},
-    )
-    plotting.save(fig, filename="plots/sum_stats.png", tight_layout=True)
+    plotting.plot_hmm_summary_stats(fo, lt, intv, sr, filename="plots/sum_stats.png")
