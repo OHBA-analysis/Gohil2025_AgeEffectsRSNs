@@ -8,11 +8,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy import optimize
 
-plot_pow_map = True
-plot_coh_net = True
-plot_coh_map = True
-plot_trans_prob = True
+plot_pow_map = False
+plot_coh_net = False
+plot_coh_map = False
+plot_trans_prob = False
 plot_sum_stats = True
 
 def vec_to_mat(x):
@@ -21,6 +22,9 @@ def vec_to_mat(x):
     x_[:, i, j] = x
     x_[:, j, i] = x
     return x_
+
+def line(x, m, c):
+    return m*x + c
 
 os.makedirs("plots", exist_ok=True)
 
@@ -179,6 +183,13 @@ if plot_sum_stats:
     copes = np.load("data/glm_sum_stats_age.npy")
     pvalues = np.load("data/glm_sum_stats_age_pvalues.npy")
 
+    age = np.load("data/age.npy")
+    sum_stats = np.load("data/sum_stats.npy")
+    sr = np.sum(sum_stats[:, -1], axis=-1)
+
+    copes /= age.std()
+    copes[1] *= 1e3
+
     tab10_cmap = plt.get_cmap("tab10")
     color = [tab10_cmap(i) for i in range(10)]
     titles = [
@@ -189,25 +200,38 @@ if plot_sum_stats:
     ]
 
     fig, ax = plt.subplots(nrows=1, ncols=4, figsize=(13,3))
+
+    # FO, LT, INTV
     for i in range(len(copes)):
         rects = ax[i].bar(range(1, 11), copes[i], color=color)
         ax[i].set_title(titles[i], fontsize=16)
         ax[i].set_xlabel("State", fontsize=16)
         ax[i].tick_params(labelsize=15)
-
         labels = []
         for p in pvalues[i]:
             if p < 0.05:
                 labels.append("*")
             else:
                 labels.append("")
-
         ax[i].bar_label(rects, padding=3, labels=labels)
-
+        bottom, top = ax[i].get_ylim()
+        ax[i].set_ylim(1.2 * bottom, 1.4 * top)
     ax[0].set_ylabel("Change Per Year", fontsize=16)
 
-    plt.tight_layout()
+    # SR
+    popt, pcov = optimize.curve_fit(line, age, sr)
+    m, c = popt
+    y = line(age, m, c)
 
+    ax[-1].scatter(age, sr, s=10, c="black", label="Data")
+    ax[-1].plot(age, y, c="red", lw=2, label=f"y = {m:.2g}x + {c:.3g}")
+    ax[-1].set_title(titles[-1], fontsize=16)
+    ax[-1].set_xlabel("Age (years)", fontsize=16)
+    ax[-1].set_ylim(5, None)
+    ax[-1].tick_params(labelsize=15)
+    ax[-1].legend(fontsize=10)
+
+    plt.tight_layout()
     filename = f"plots/sum_stats.png"
     print("Saving", filename)
     plt.savefig(filename)

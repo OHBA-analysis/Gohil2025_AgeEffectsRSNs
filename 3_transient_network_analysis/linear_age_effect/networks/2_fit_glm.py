@@ -38,6 +38,7 @@ def fit_glm_and_do_stats(target, metric="copes"):
         sex=np.load("data/sex.npy"),
         brain_vol=np.load("data/brain_vol.npy"),
         gm_vol=np.load("data/gm_vol.npy"),
+        wm_vol=np.load("data/wm_vol.npy"),
         hip_vol=np.load("data/hip_vol.npy"),
         headsize=np.load("data/headsize.npy"),
         x=np.load("data/x.npy"),
@@ -51,13 +52,14 @@ def fit_glm_and_do_stats(target, metric="copes"):
     DC.add_regressor(name="Sex", rtype="Parametric", datainfo="sex", preproc="z")
     DC.add_regressor(name="Brain Vol.", rtype="Parametric", datainfo="brain_vol", preproc="z")
     DC.add_regressor(name="GM Vol.", rtype="Parametric", datainfo="gm_vol", preproc="z")
+    DC.add_regressor(name="WM Vol.", rtype="Parametric", datainfo="wm_vol", preproc="z")
     DC.add_regressor(name="Hippo. Vol.", rtype="Parametric", datainfo="hip_vol", preproc="z")
     DC.add_regressor(name="Head Size", rtype="Parametric", datainfo="headsize", preproc="z")
     DC.add_regressor(name="x", rtype="Parametric", datainfo="x", preproc="z")
     DC.add_regressor(name="y", rtype="Parametric", datainfo="y", preproc="z")
     DC.add_regressor(name="z", rtype="Parametric", datainfo="z", preproc="z")
 
-    DC.add_contrast(name="Age", values=[0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+    DC.add_contrast(name="Age", values=[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     design = DC.design_from_datainfo(data.info)
     design.plot_summary(savepath="plots/glm_design.png", show=False)
@@ -101,6 +103,7 @@ if do_trans_prob:
 
 if do_sum_stats:
     target = np.load("data/sum_stats.npy")
+    target = target[:, :3]  # keep fo, lt, intv
     mean, age, pvalues = fit_glm_and_do_stats(target, metric="tstats")
     np.save("data/glm_sum_stats_mean.npy", mean)
     np.save("data/glm_sum_stats_age.npy", age)
