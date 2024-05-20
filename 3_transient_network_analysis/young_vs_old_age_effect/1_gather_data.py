@@ -85,6 +85,7 @@ category_list_ = []
 sex_ = []
 brain_vol_ = []
 gm_vol_ = []
+wm_vol_ = []
 hip_vol_ = []
 headsize_ = []
 x_ = []
@@ -137,6 +138,7 @@ for _, row in csv.iterrows():
         sex_.append(row["Sex (1=female, 2=male)"])
         brain_vol_.append(row["Brain_Vol"])
         gm_vol_.append(row["GM_Vol_Norm"])
+        wm_vol_.append(row["WM_Vol_Norm"])
         hip_vol_.append(row["Hippo_Vol_Norm"])
         headsize_.append(hs)
         x_.append(x)
@@ -160,6 +162,7 @@ np.save("data/category_list.npy", category_list_)
 np.save("data/sex.npy", sex_)
 np.save("data/brain_vol.npy", brain_vol_)
 np.save("data/gm_vol.npy", gm_vol_)
+np.save("data/wm_vol.npy", wm_vol_)
 np.save("data/hip_vol.npy", hip_vol_)
 np.save("data/headsize.npy", headsize_)
 np.save("data/x.npy", x_)

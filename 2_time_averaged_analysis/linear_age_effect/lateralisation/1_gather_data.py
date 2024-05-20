@@ -57,28 +57,28 @@ def get_targets(id):
     c_intra = np.zeros([len(freq_bands), 52])
     c_inter = np.zeros([len(freq_bands), 52])
     for j in range(len(freq_bands)):
-        for i in left_parcels:
+        for k in left_parcels:
             # Left intra
-            c_intra[j, i] = np.sum(c[j, i, left_parcels])
+            c_intra[j, k] = np.sum(c[j, k, left_parcels])
             # Left inter
-            c_inter[j, i] = np.sum(c[j, i, right_parcels])
-        for i in right_parcels:
+            c_inter[j, k] = np.sum(c[j, k, right_parcels])
+        for k in right_parcels:
             # Right intra
-            c_intra[j, i] = np.sum(c[j, i, right_parcels])
+            c_intra[j, k] = np.sum(c[j, k, right_parcels])
             # Right inter
-            c_inter[j, i] = np.sum(c[j, i, left_parcels])
+            c_inter[j, k] = np.sum(c[j, k, left_parcels])
     cd = c_intra - c_inter
 
     c = aec[i].T
     c_intra = np.zeros([len(freq_bands), 52])
     c_inter = np.zeros([len(freq_bands), 52])
     for j in range(len(freq_bands)):
-        for i in left_parcels:
-            c_intra[j, i] = np.sum(c[j, i, left_parcels])
-            c_inter[j, i] = np.sum(c[j, i, right_parcels])
-        for i in right_parcels:
-            c_intra[j, i] = np.sum(c[j, i, right_parcels])
-            c_inter[j, i] = np.sum(c[j, i, left_parcels])
+        for k in left_parcels:
+            c_intra[j, k] = np.sum(c[j, k, left_parcels])
+            c_inter[j, k] = np.sum(c[j, k, right_parcels])
+        for k in right_parcels:
+            c_intra[j, k] = np.sum(c[j, k, right_parcels])
+            c_inter[j, k] = np.sum(c[j, k, left_parcels])
     ad = c_intra - c_inter
 
     return pd, cd, ad
@@ -93,6 +93,7 @@ age_ = []
 sex_ = []
 brain_vol_ = []
 gm_vol_ = []
+wm_vol_ = []
 hip_vol_ = []
 headsize_ = []
 x_ = []
@@ -131,6 +132,7 @@ for _, row in csv.iterrows():
         sex_.append(row["Sex (1=female, 2=male)"])
         brain_vol_.append(row["Brain_Vol"])
         gm_vol_.append(row["GM_Vol_Norm"])
+        wm_vol_.append(row["WM_Vol_Norm"])
         hip_vol_.append(row["Hippo_Vol_Norm"])
         headsize_.append(hs)
         x_.append(x)
@@ -148,6 +150,7 @@ np.save("data/age.npy", age_)
 np.save("data/sex.npy", sex_)
 np.save("data/brain_vol.npy", brain_vol_)
 np.save("data/gm_vol.npy", gm_vol_)
+np.save("data/wm_vol.npy", wm_vol_)
 np.save("data/hip_vol.npy", hip_vol_)
 np.save("data/headsize.npy", headsize_)
 np.save("data/x.npy", x_)

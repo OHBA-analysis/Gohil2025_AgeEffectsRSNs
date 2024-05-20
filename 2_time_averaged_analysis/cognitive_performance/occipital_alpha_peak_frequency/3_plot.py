@@ -15,7 +15,10 @@ cog = np.load("data/cog.npy")
 peak_freq = np.load("data/peak_freq.npy")
 age = np.load("data/age.npy")
 
-
+# Check the GLM stats
+cope = np.load("data/glm_copes.npy")
+pvalue = np.load("data/glm_pvalues.npy")
+print(f"cope={cope}, pvalue={pvalue}")
 
 # Remove outliers
 mu = np.mean(peak_freq)

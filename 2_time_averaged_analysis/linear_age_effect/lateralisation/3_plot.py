@@ -8,7 +8,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 os.makedirs("plots", exist_ok=True)
 
-plot_pow_map = False
+plot_pow_map = True
 plot_coh_map = True
 plot_aec_map = True
 
@@ -43,8 +43,13 @@ if plot_pow_map:
     # Use the mean as the reference
     p = 100 * beta / (age.std() * beta_0)
 
+    p_ = np.zeros([52, 5])
+    p_[52//2:] = p
+    pvalues_ = np.ones([52, 5])
+    pvalues_[52//2:] = pvalues
+
     power.save(
-        p.T,
+        p_.T,
         mask_file="MNI152_T1_8mm_brain.nii.gz",
         parcellation_file="Glasser52_binary_space-MNI152NLin6_res-8x8x8.nii.gz",
         plot_kwargs={
@@ -55,7 +60,7 @@ if plot_pow_map:
         filename="plots/glm_pow_diff_age_.png",
     )
     power.save(
-        pvalues.T,
+        pvalues_.T,
         mask_file="MNI152_T1_8mm_brain.nii.gz",
         parcellation_file="Glasser52_binary_space-MNI152NLin6_res-8x8x8.nii.gz",
         plot_kwargs={

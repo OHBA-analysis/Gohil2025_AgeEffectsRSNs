@@ -6,16 +6,26 @@ import numpy as np
 import glmtools as glm
 from scipy import stats
 
-def do_stats(design, data, model, contrast_idx, metric="copes"):
+def do_stats(
+    design,
+    data,
+    model,
+    contrast_idx,
+    nperms=1000,
+    metric="copes",
+    tail=0,
+    pooled_dims=1,
+    nprocesses=16,
+):
     perm = glm.permutations.MaxStatPermutation(
         design=design,
         data=data,
         contrast_idx=contrast_idx,
-        nperms=1000,
+        nperms=nperms,
         metric=metric,
-        tail=0,  # two-tailed t-test
-        pooled_dims=1,
-        nprocesses=16,
+        tail=tail,
+        pooled_dims=pooled_dims,
+        nprocesses=nprocesses,
     )
     nulls = np.squeeze(perm.nulls)
     if metric == "tstats":
@@ -49,7 +59,10 @@ def fit_glm_and_do_stats(target, metric="copes"):
     model = glm.fit.OLSModel(design, data)
 
     copes = model.copes[:-1]
-    pvalues = np.array([do_stats(design, data, model, contrast_idx=i, metric=metric) for i in range(n_states)])
+    pvalues = np.array([
+        do_stats(design, data, model, contrast_idx=i, metric=metric)
+        for i in range(n_states)
+    ])
 
     return copes, pvalues
 

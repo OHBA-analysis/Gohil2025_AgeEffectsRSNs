@@ -12,23 +12,34 @@ do_mean_coh = False
 do_trans_prob = False
 do_sum_stats = True
 
-def do_stats(design, data, model, contrast_idx, metric="copes"):
+def do_stats(
+    design,
+    data,
+    model,
+    contrast_idx,
+    nperms=1000,
+    metric="copes",
+    tail=0,
+    pooled_dims=(1,2),
+    nprocesses=16,
+):
     perm = glm.permutations.MaxStatPermutation(
         design=design,
         data=data,
         contrast_idx=contrast_idx,
-        nperms=1000,
+        nperms=nperms,
         metric=metric,
-        tail=0,  # two-tailed t-test
-        pooled_dims=(1,2),  # pool over channels and frequencies
-        nprocesses=16,
+        tail=tail,
+        pooled_dims=pooled_dims,
+        nprocesses=nprocesses,
     )
+    nulls = np.squeeze(perm.nulls)
     if metric == "tstats":
         tstats = abs(model.tstats[contrast_idx])
-        percentiles = stats.percentileofscore(perm.nulls, tstats)
+        percentiles = stats.percentileofscore(nulls, tstats)
     elif metric == "copes":
         copes = abs(model.copes[contrast_idx])
-        percentiles = stats.percentileofscore(perm.nulls, copes)
+        percentiles = stats.percentileofscore(nulls, copes)
     return 1 - percentiles / 100
 
 def fit_glm_and_do_stats(target, metric="copes"):
@@ -47,7 +58,6 @@ def fit_glm_and_do_stats(target, metric="copes"):
     )
 
     DC = glm.design.DesignConfig()
-    DC.add_regressor(name="Mean", rtype="Constant")
     DC.add_regressor(name="Age", rtype="Parametric", datainfo="age", preproc="z")
     DC.add_regressor(name="Sex", rtype="Parametric", datainfo="sex", preproc="z")
     DC.add_regressor(name="Brain Vol.", rtype="Parametric", datainfo="brain_vol", preproc="z")
@@ -58,8 +68,9 @@ def fit_glm_and_do_stats(target, metric="copes"):
     DC.add_regressor(name="x", rtype="Parametric", datainfo="x", preproc="z")
     DC.add_regressor(name="y", rtype="Parametric", datainfo="y", preproc="z")
     DC.add_regressor(name="z", rtype="Parametric", datainfo="z", preproc="z")
+    DC.add_regressor(name="Mean", rtype="Constant")
 
-    DC.add_contrast(name="Age", values=[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    DC.add_contrast(name="", values=[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     design = DC.design_from_datainfo(data.info)
     design.plot_summary(savepath="plots/glm_design.png", show=False)
@@ -68,7 +79,7 @@ def fit_glm_and_do_stats(target, metric="copes"):
 
     model = glm.fit.OLSModel(design, data)
 
-    mean = model.betas[0]
+    mean = model.betas[-1]
     age = model.copes[0]
     pvalues = do_stats(design, data, model, contrast_idx=0, metric=metric)
     return mean, age, pvalues

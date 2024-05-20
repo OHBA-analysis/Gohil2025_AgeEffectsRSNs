@@ -9,23 +9,34 @@ from scipy import stats
 do_pow = True
 do_mean_coh = True
 
-def do_stats(design, data, model, contrast_idx, metric="copes"):
+def do_stats(
+    design,
+    data,
+    model,
+    contrast_idx,
+    nperms=1000,
+    metric="copes",
+    tail=0,
+    pooled_dims=(1,2),
+    nprocesses=16,
+):
     perm = glm.permutations.MaxStatPermutation(
         design=design,
         data=data,
         contrast_idx=contrast_idx,
-        nperms=1000,
+        nperms=nperms,
         metric=metric,
-        tail=0,  # two-tailed t-test
-        pooled_dims=(1,2),  # pool over channels and frequencies
-        nprocesses=16,
+        tail=tail,
+        pooled_dims=pooled_dims,
+        nprocesses=nprocesses,
     )
+    nulls = np.squeeze(perm.nulls)
     if metric == "tstats":
         tstats = abs(model.tstats[contrast_idx])
-        percentiles = stats.percentileofscore(perm.nulls, tstats)
+        percentiles = stats.percentileofscore(nulls, tstats)
     elif metric == "copes":
         copes = abs(model.copes[contrast_idx])
-        percentiles = stats.percentileofscore(perm.nulls, copes)
+        percentiles = stats.percentileofscore(nulls, copes)
     return 1 - percentiles / 100
 
 def fit_glm_and_do_stats(target):
