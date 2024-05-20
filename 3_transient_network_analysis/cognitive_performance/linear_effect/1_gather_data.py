@@ -80,7 +80,7 @@ intv_ = []
 sr_ = []
 
 # Lists to hold regressor data
-category_list_ = []
+cog_ = []
 age_ = []
 sex_ = []
 brain_vol_ = []
@@ -94,11 +94,10 @@ z_ = []
 
 # Load participant confound data and cognitive score
 part_csv = pd.read_csv(f"{base_dir}/all_collated_camcan.csv")
-cog_csv = pd.read_csv("../../2_time_averaged_analysis/cognitive_performance/do_pca/data/cognitive_metrics_pca.csv")
+cog_csv = pd.read_csv(f"{base_dir}/2_time_averaged_analysis/cognitive_performance/do_pca/data/cognitive_metrics_pca.csv")
 
 cog_ids = cog_csv["ID"].values
 cog_scores = cog_csv["Component 0"].values
-bottom_thres, top_thres = np.quantile(cog_scores, [0.25, 0.75])
 
 for _, row in part_csv.iterrows():
     id = row["ID"]
@@ -122,13 +121,7 @@ for _, row in part_csv.iterrows():
             print(f"sub-{id} has no psd")
             continue
         hs, x, y, z = get_headsize_and_pos(preproc_file)
-
-        if cog > top_thres:
-            category_list_.append(1)
-        elif cog < bottom_thres:
-            category_list_.append(2)
-        else:
-            continue
+        cog = cog_scores[cog_ids == id][0]
         
         # Add to target data lists
         pow_.append(p)
@@ -141,6 +134,7 @@ for _, row in part_csv.iterrows():
         sr_.append(sr_i)
 
         # Add to regressor lists
+        cog_.append(cog)
         age_.append(row["Fixed_Age"])
         sex_.append(row["Sex (1=female, 2=male)"])
         brain_vol_.append(row["Brain_Vol"])
@@ -164,7 +158,7 @@ np.save("data/coh.npy", coh_)
 np.save("data/mean_coh.npy", mean_coh_)
 np.save("data/tp.npy", tp_)
 np.save("data/sum_stats.npy", sum_stats_)
-np.save("data/category_list.npy", category_list_)
+np.save("data/cog.npy", cog_)
 np.save("data/age.npy", age_)
 np.save("data/sex.npy", sex_)
 np.save("data/brain_vol.npy", brain_vol_)

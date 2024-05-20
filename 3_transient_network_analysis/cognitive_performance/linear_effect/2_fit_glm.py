@@ -45,7 +45,7 @@ def do_stats(
 def fit_glm_and_do_stats(target, metric="copes", pooled_dims=(1,2)):
     data = glm.data.TrialGLMData(
         data=target,
-        category_list=np.load("data/category_list.npy"),
+        cog=np.load("data/cog.npy"),
         age=np.load("data/age.npy"),
         sex=np.load("data/sex.npy"),
         brain_vol=np.load("data/brain_vol.npy"),
@@ -59,8 +59,7 @@ def fit_glm_and_do_stats(target, metric="copes", pooled_dims=(1,2)):
     )
 
     DC = glm.design.DesignConfig()
-    DC.add_regressor(name="Top", rtype="Categorical", codes=1)
-    DC.add_regressor(name="Bottom", rtype="Categorical", codes=2)
+    DC.add_regressor(name="1st PCA Comp.", rtype="Parametric", datainfo="cog", preproc="z")
     DC.add_regressor(name="Age", rtype="Parametric", datainfo="age", preproc="z")
     DC.add_regressor(name="Sex", rtype="Parametric", datainfo="sex", preproc="z")
     DC.add_regressor(name="Brain Vol.", rtype="Parametric", datainfo="brain_vol", preproc="z")
@@ -71,8 +70,9 @@ def fit_glm_and_do_stats(target, metric="copes", pooled_dims=(1,2)):
     DC.add_regressor(name="x", rtype="Parametric", datainfo="x", preproc="z")
     DC.add_regressor(name="y", rtype="Parametric", datainfo="y", preproc="z")
     DC.add_regressor(name="z", rtype="Parametric", datainfo="z", preproc="z")
+    DC.add_regressor(name="Mean", rtype="Constant")
 
-    DC.add_contrast(name="", values=[1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    DC.add_contrast(name="", values=[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     design = DC.design_from_datainfo(data.info)
     design.plot_summary(savepath="plots/glm_design.png", show=False)
