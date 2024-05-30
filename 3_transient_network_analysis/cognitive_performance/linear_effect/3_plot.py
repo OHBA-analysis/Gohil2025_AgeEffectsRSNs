@@ -167,7 +167,7 @@ if plot_sum_stats:
     ax[-1].scatter(cog, sr, s=10, c="black", label="Data")
     ax[-1].plot(cog, y, c="red", lw=2, label=f"y = {m:.2g}x + {c:.3g}")
     ax[-1].set_title(titles[-1], fontsize=16)
-    ax[-1].set_xlabel("1st PCA Comp.", fontsize=16)
+    ax[-1].set_xlabel("Cognitive Score", fontsize=16)
     ax[-1].set_ylim(5, None)
     ax[-1].tick_params(labelsize=15)
     ax[-1].legend(fontsize=10)

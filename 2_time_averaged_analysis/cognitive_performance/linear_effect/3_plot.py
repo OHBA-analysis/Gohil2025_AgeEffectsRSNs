@@ -21,7 +21,7 @@ if plot_pow:
         "ytick.labelsize": 16,
     })
 
-    copes = np.load("data/glm_pow.npy").T
+    copes = np.load("data/glm_pow.npy").T * 1e2
     pvalues = np.load("data/glm_pow_pvalues.npy").T
 
     power.save(
@@ -57,7 +57,7 @@ if plot_mean_coh:
         "ytick.labelsize": 16,
     })
 
-    copes = np.load("data/glm_mean_coh.npy").T
+    copes = np.load("data/glm_mean_coh.npy").T * 1e2
     pvalues = np.load("data/glm_mean_coh_pvalues.npy").T
 
     power.save(

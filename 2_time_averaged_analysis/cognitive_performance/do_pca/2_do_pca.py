@@ -68,7 +68,7 @@ plt.close()
 
 fig, ax = plt.subplots()
 ax.bar(list(d.keys()), -W[0])
-ax.set_xlabel("Cognitive/Behavioural Task", fontsize=16)
+ax.set_xlabel("Cognitive Task", fontsize=16)
 ax.set_ylabel("Loading", fontsize=16)
 ax.tick_params(axis="both", labelsize=15)
 plt.xticks(rotation=90)
