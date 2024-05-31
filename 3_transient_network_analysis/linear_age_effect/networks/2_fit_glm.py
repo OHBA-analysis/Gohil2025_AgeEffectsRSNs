@@ -10,7 +10,8 @@ do_pow = False
 do_coh = False
 do_mean_coh = False
 do_trans_prob = False
-do_sum_stats = True
+do_sum_stats = False
+do_sr = True
 
 def do_stats(
     design,
@@ -42,7 +43,7 @@ def do_stats(
         percentiles = stats.percentileofscore(nulls, copes)
     return 1 - percentiles / 100
 
-def fit_glm_and_do_stats(target, metric="copes"):
+def fit_glm_and_do_stats(target, metric="copes", pooled_dims=(1,2)):
     data = glm.data.TrialGLMData(
         data=target,
         age=np.load("data/age.npy"),
@@ -81,7 +82,14 @@ def fit_glm_and_do_stats(target, metric="copes"):
 
     mean = model.betas[-1]
     age = model.copes[0]
-    pvalues = do_stats(design, data, model, contrast_idx=0, metric=metric)
+    pvalues = do_stats(
+        design,
+        data,
+        model,
+        contrast_idx=0,
+        metric=metric,
+        pooled_dims=pooled_dims,
+    )
     return mean, age, pvalues
 
 if do_pow:
@@ -119,3 +127,11 @@ if do_sum_stats:
     np.save("data/glm_sum_stats_mean.npy", mean)
     np.save("data/glm_sum_stats_age.npy", age)
     np.save("data/glm_sum_stats_age_pvalues.npy", pvalues)
+
+if do_sr:
+    target = np.load("data/sum_stats.npy")
+    target = np.sum(target[:, -1], axis=-1)
+    mean, age, pvalues = fit_glm_and_do_stats(target, metric="tstats", pooled_dims=())
+    np.save("data/glm_sr_mean.npy", mean)
+    np.save("data/glm_sr_age.npy", age)
+    np.save("data/glm_sr_age_pvalues.npy", pvalues)
