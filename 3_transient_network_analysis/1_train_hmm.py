@@ -48,17 +48,17 @@ print("Training model")
 history = model.fit(training_data)
 
 # Save the trained model
-model.save(f"models/run{run}")
+model.save(f"{base_dir}/models/run{run}")
 
 # Get free energy
 free_energy = model.free_energy(training_data)
 history["free_energy"] = free_energy
 
 # Save training history
-with open(f"models/run{run}/history.pkl", "wb") as file:
+with open(f"{base_dir}/models/run{run}/history.pkl", "wb") as file:
     pickle.dump(history, file)
 
-with open(f"models/run{run}/loss.dat", "w") as file:
+with open(f"{base_dir}/models/run{run}/loss.dat", "w") as file:
     file.write(f"ll_loss = {history['loss'][-1]}\n")
     file.write(f"free_energy = {free_energy}\n")
 
@@ -76,8 +76,8 @@ power.save(
     mask_file="MNI152_T1_8mm_brain.nii.gz",
     parcellation_file="Glasser52_binary_space-MNI152NLin6_res-8x8x8.nii.gz",
     subtract_mean=True,
-    plot_kwargs={"cmap": "RdBu_r", "bg_on_data": 1, "darkness": 0.4, "alpha": 1},
-    filename=f"models/run{run}/covs_.png",
+    plot_kwargs={"symmetric_cbar": True}
+    filename=f"{base_dir}/models/run{run}/covs_.png",
 )
 
 # Delete temporary directory
