@@ -14,7 +14,7 @@ def do_stats(
     nperms=1000,
     metric="copes",
     tail=0,
-    pooled_dims=1,
+    pooled_dims=(1,2),
     nprocesses=16,
 ):
     perm = glm.permutations.MaxStatPermutation(
@@ -40,13 +40,14 @@ def fit_glm_and_do_stats(target, metric="copes"):
     fo = np.load("data/fo.npy")
     n_states = fo.shape[1]
 
+    fo -= np.mean(fo, axis=0, keepdims=True)
     regressors = {f"fo{i}": fo[:, i] for i in range(n_states)}
 
     data = glm.data.TrialGLMData(data=target, **regressors)
 
     DC = glm.design.DesignConfig()
     for i in range(n_states):
-        DC.add_regressor(name=f"FO{i + 1}", rtype="Parametric", datainfo=f"fo{i}", preproc="z")
+        DC.add_regressor(name=f"FO{i + 1}", rtype="Parametric", datainfo=f"fo{i}")
     DC.add_regressor(name="Mean", rtype="Constant")
 
     DC.add_simple_contrasts()
@@ -58,7 +59,7 @@ def fit_glm_and_do_stats(target, metric="copes"):
 
     model = glm.fit.OLSModel(design, data)
 
-    copes = model.copes[:-1]
+    copes = model.copes[:n_states]
     pvalues = np.array([
         do_stats(design, data, model, contrast_idx=i, metric=metric)
         for i in range(n_states)
