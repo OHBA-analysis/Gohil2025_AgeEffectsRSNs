@@ -1,4 +1,4 @@
-# Age and Cognitive Performance Effects in Electrophysiological Resting-State Networks
+# Effects of age on resting-state cortical networks
 
 Scripts for reproducing the results in [Gohil et al. (2024)]().
 
