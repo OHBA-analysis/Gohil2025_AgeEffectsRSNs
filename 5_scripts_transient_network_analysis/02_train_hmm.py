@@ -7,6 +7,10 @@ from osl_dynamics.data import load_tfrecord_dataset
 from osl_dynamics.models.hmm import Config, Model
 
 # Build model
+#
+# Note: the original paper used sequence_length=4000, batch_size=16.
+# However, we recommend the following hyperparameters instead when
+# using the latest version of osl-dynamics.
 config = Config(
     n_states=n_states,
     n_channels=120,
